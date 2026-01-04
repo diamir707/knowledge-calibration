@@ -15,7 +15,7 @@ def reduced_scores(
         row,
         reduction: str = "sum",
         only_answers: bool = False
-        ) -> List[float]:
+) -> List[float]:
     """
     Helper function to obtain a sentence-level log-likelihood based on different
     reduction strategies (Sum, Sum (A), Mean, Mean (A)). Scores are obtained using
@@ -50,12 +50,15 @@ def aggregate(
     votes_to_win: int = 5
 ) -> Tuple[Optional[int], int, bool]:
     """
-    Compute the final answer for a group of template predictions.
-
-    Returns:
-        - predicted_index: the selected answer (None if failed)
-        - vote_count: number of templates agreeing with selected answer
-        - fail: True if aggregation failed
+    Finds the final answer for different reduction strategies.
+    ---------------
+    :param group: pd.DataFrame, candidate predictions per instance.
+    :param strategy: str, the strategy to obtain a final answer.
+    :param votes_to_win: int, number of necessary votes to win if strategy equals voting.
+    :returns:
+        - predicted answer (None if failed)
+        - vote count (number of agreeing answers)
+        - fail (True if the voting failed)
     """
 
     if strategy == "voting":
@@ -93,12 +96,13 @@ def aggregate(
         raise ValueError(f"Unknown aggregation strategy: {strategy}")
 
 
-def plot_accuracy_vs_metric(results_df,
-                            estimator: str = "base_conf",
-                            metric: str = "brier_score",
-                            title: str = "",
-                            axis: Optional[plt.Axes] = None
-                            ) -> Tuple[plt.Figure, plt.Axes]:
+def plot_accuracy_vs_metric(
+        results_df,
+        estimator: str = "base_conf",
+        metric: str = "brier_score",
+        title: str = "",
+        axis: Optional[plt.Axes] = None
+) -> Tuple[plt.Figure, plt.Axes]:
     """
     Helper function to plot accuracy vs calibration metric (ACE, brier score)
     per model family for a given estimator.
@@ -148,9 +152,9 @@ def plot_accuracy_vs_metric(results_df,
 
 def evaluate_reductions(models: Union[str, List[str]] = "gpt2") -> pd.DataFrame:
     """
-    Helper function for our first experiment evaluating which reduction method is most
+    Helper function to evaluate which reduction method is most
     effective. For each model and reduction strategy finds the ACE and accuracy. Only the
-    first template and base-confidence is used.
+    first template and Base-Confidence is used.
     """
     if isinstance(models, str):
         models = [models]
@@ -226,7 +230,7 @@ def get_model_scores(
         device: str = "cuda",
         templates: Union[int, List[int]] = 0,
         batch_size: int = 32
-        ) -> None:
+) -> None:
     """
     Function used to obtain the model score using LM-PUB-QUIZ for specified templates.
     Stores the raw (unreduced) scores per instance and template.
@@ -257,7 +261,7 @@ def get_model_scores(
     print(f"Scores saved to: {file_path}")
 
 
-def subsample_answer_options(total_len: int, answer_index: int, sample_size: int):
+def subsample_answer_options(total_len: int, answer_index: int, sample_size: int) -> np.ndarray:
     """
     Function to draw a sample of size 'sample_size' of the answer options of an instance.
     """
@@ -282,7 +286,7 @@ def get_factor_results(
     adds the estimates of Base- and Margin-Confidence.
     :param list_of_models: List[str], the models to evaluate.
     :param reduction_strategy: str, reduction strategy applied to the token log-likelihoods.
-    :return: pd.DataFrame, per-model and per-question results.
+    :returns: pd.DataFrame, per-model and per-question results.
     """
     results = []
     for m in list_of_models:

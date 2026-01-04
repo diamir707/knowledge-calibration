@@ -10,20 +10,24 @@ from src.utils import aggregate, reduced_scores
 
 
 def base_confidence(instances_df: pd.DataFrame) -> pd.Series:
-    """Function to obtain the Base-Confidence (Ploner et al., 2024) as
-    defined in Equation C.1. Any template can be used for this estimate.
+    """
+    Function to obtain the Base-Confidence.
+    Any template can be used for this estimate.
     ---------------
     :param instances_df: Dataframe with the instance-level results per template.
-    :returns: A pandas series of the Base-Confidence."""
+    :returns: A pandas series of the Base-Confidence.
+    """
     return instances_df["conf_scores"].apply(lambda x: np.max(x))
 
 
 def margin_confidence(instances_df: pd.DataFrame) -> pd.Series:
-    """Function to obtain the Confidence-Margin (Ploner et al., 2024) as
-    defined in Equation C.2. Any template can be used for this estimate.
+    """
+    Function to obtain the Confidence-Margin.
+    Any template can be used for this estimate.
     ---------------
     :param instances_df: The dataframe with the instance-level results per template.
-    :returns: A pandas series of the confidence margin."""
+    :returns: A pandas series of the confidence margin.
+    """
     return instances_df["conf_scores"].apply(lambda x: x[0] - x[1])
 
 
@@ -33,11 +37,17 @@ def average_confidence(
     votes_range: Tuple[int] = (2, 3, 4, 5)
 ) -> pd.DataFrame:
     """
-    Compute average confidence per instance for all aggregation strategies.
-    For 'voting', compute it for each votes_to_win in votes_range.
+    Computes the Average-Confidence per instance for specified aggregation strategies.
+    If strategy equals 'voting', compute it for each votes_to_win in specified votes_range.
+    ---------------
+    :param instances_df: pd.DataFrame, instance-level results.
+    :param strategies: Tuple[str], aggregation strategies for Average-Confidence.
+    :param votes_range: Tuple[int], number of votes to win the voting aggregation.
+    :returns: pd.DataFrame, with the Average-Confidence estimates added.
     """
 
     records = []
+    # remove the epistemic templates
     grouped = instances_df[
         ~instances_df["template"].isin([5, 6, 7, 8, 9, 10, 11])].groupby(["relation", "instance"])
 
@@ -93,11 +103,12 @@ def consistency_confidence(
     votes_range: Tuple[int] = (2, 3, 4, 5)
 ) -> pd.DataFrame:
     """
-    Compute consistency confidence per instance for all aggregation strategies.
-    For 'voting', compute it for each votes_to_win in votes_range.
+    Computes the Consistency-Confidence per instance for specified aggregation strategies.
+    If strategy equals 'voting', compute it for each votes_to_win in specified votes_range.
     """
 
     records = []
+    # remove epistemic templates
     grouped = instances_df[
         ~instances_df["template"].isin([5, 6, 7, 8, 9, 10, 11])].groupby(["relation", "instance"])
 
@@ -126,12 +137,14 @@ def consistency_confidence(
 
 
 def marker_confidence(instances_df: pd.DataFrame) -> pd.DataFrame:
-    """Function to obtain a models prediction and associated base-confidences
-    from epistemic marker injected templates (template indices 5 and 6).
+    """
+    Function to obtain a models prediction and associated base-confidences
+    from epistemic marker injected templates (template indices from 5 onwards).
     ---------------
-    :param instances_df: DataFrame with instance-level results per template.
-    :returns: Dataframe with the epistemic results."""
-    # templates 6 and 7 in the (combined) metadata are the injected ones
+    :param instances_df: pd.DataFrame, instance-level results per template.
+    :returns: pd.Dataframe, instance-level results with the epistemic results.
+    """
+    # templates 6 and 7 in the metadata are the verbalized injected ones
     weakener_df = instances_df[instances_df["template"] == 5].copy()
     strengthener_df = instances_df[instances_df["template"] == 6].copy()
 
@@ -157,6 +170,7 @@ def marker_confidence(instances_df: pd.DataFrame) -> pd.DataFrame:
         "relation", "instance", "weakener_conf", "strengthener_conf",
         "weakener_correctly_predicted", "strengthener_correctly_predicted"
     ]
+    # templates with the numerical confidence expressions
     c = 0
     for t in [7, 8, 9, 10, 11]:
         d = instances_df[instances_df["template"] == t].copy()
@@ -179,7 +193,7 @@ def get_confidence_estimates(
         model: str = "gpt2",
         reduction: str = "sum",
         only_answers: bool = False
-        ) -> pd.DataFrame:
+) -> pd.DataFrame:
     """
     Function to obtain the instance-level results: confidence estimates,
     correctness-labels etc. used for our analysis later.

@@ -3,13 +3,12 @@ from typing import (
     Literal,
     Tuple,
     Optional,
-    Union, Any)
+    Union
+)
+
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-from matplotlib.axes import Axes
-from matplotlib.figure import Figure
-from pandas import DataFrame
 from sklearn.calibration import calibration_curve
 
 
@@ -18,7 +17,7 @@ def adaptive_calibration_error(
         confidences: List[float],
         n_bins: int = 20,
         norm: Literal["l1", "l2"] = "l1"
-        ) -> float:
+) -> float:
     """
     Variant of the expected calibration error with adaptive bins, i.e.
     where each bin contains approximately the same number of samples.
@@ -48,9 +47,7 @@ def adaptive_calibration_error(
     return np.mean(errors)
 
 
-def weighted_average(groups: pd.DataFrame,
-                     predictions: str
-                     ) -> float:
+def weighted_average(groups: pd.DataFrame, predictions: str) -> float:
     """
     Implements the weighted average over all relations for a given column of
     correctness labels.
@@ -64,9 +61,7 @@ def weighted_average(groups: pd.DataFrame,
     return round((values*weights).sum()/weights.sum(), 6)
 
 
-def brier_score(predictions: List[int],
-                confidences: List[float]
-                ) -> float:
+def brier_score(predictions: List[int], confidences: List[float]) -> float:
     """Function which implements the brier score."""
     bs = np.sum((np.array(predictions) - np.array(confidences))**2)*(1/len(predictions))
     return bs
@@ -87,29 +82,19 @@ def plot_calibration_curve(
         axes_label_fontsize: int = 10,
         axes_tick_fontsize: int = 10,
         label_identity_line: str = "_no_legend_",
-        axis: Optional[plt.Axes] = None,
-        dark_mode: bool = False
-        ) -> Tuple[plt.Figure, plt.Axes]:
+        axis: Optional[plt.Axes] = None
+) -> Tuple[plt.Figure, plt.Axes]:
     """Plots (multiple) calibration curves for bins as obtained from sklearn calibration curve."""
 
     # Axis setup
     if axis is None:
-        fig, ax = plt.subplots(figsize=(8, 6), facecolor="#18181B" if dark_mode else "white")
+        fig, ax = plt.subplots(figsize=(8, 6), facecolor="white")
     else:
         ax = axis
         fig = ax.figure
 
-    if dark_mode:
-        plt.style.use("dark_background")
-        # Override the rcParams defaults that the style sets so that future figures
-        # pick up the color we want (and savefig uses it by default).
-        plt.rcParams["figure.facecolor"] = "#18181B"
-        plt.rcParams["savefig.facecolor"] = "#18181B"
-        plt.rcParams["axes.facecolor"] = "#18181B"
-
     # Identity line (perfect calibration): f(x)=x
-    ax.plot([0, 1], [0, 1], color="white" if dark_mode else "black",
-            linestyle="solid", label=label_identity_line)
+    ax.plot([0, 1], [0, 1], color="black", linestyle="solid", label=label_identity_line)
 
     # Plot each calibration curve
     for i in range(len(predictions)):
@@ -138,12 +123,12 @@ def plot_calibration_curve(
     for spine in ax.spines.values():
         spine.set_visible(True)
         spine.set_linewidth(1)
-        spine.set_color("white" if dark_mode else "black")
+        spine.set_color("black")
 
     # Styling of the ticks
     ax.xaxis.set_ticks_position("bottom")
     ax.yaxis.set_ticks_position("left")
-    ax.set_facecolor("#18181B" if dark_mode else "white")
+    ax.set_facecolor("white")
     ax.grid(False)
 
     plt.tight_layout()
@@ -165,7 +150,7 @@ def plot_accuracy_rejection_curve(
     axes_tick_fontsize: int = 10,
     axis: Optional[plt.Axes] = None,
     return_df: bool = False
-) -> Tuple[Figure | Figure, Axes, DataFrame] | Tuple[Figure | Any, Axes]:
+):
     """
     Plots (multiple) accuracy–rejection curves for specified thresholds.
     """
@@ -179,7 +164,6 @@ def plot_accuracy_rejection_curve(
 
     n_estimators = len(predictions)
 
-    # Normalize style arguments
     if isinstance(linestyles, str):
         linestyles = [linestyles] * n_estimators
     if isinstance(markers, str):
@@ -210,7 +194,6 @@ def plot_accuracy_rejection_curve(
             rejected_fracs.append(rejected_frac)
             accuracies.append(frac_true)
 
-            # Store for DataFrame
             records.append({
                 "estimator": est_name,
                 "threshold": t,
