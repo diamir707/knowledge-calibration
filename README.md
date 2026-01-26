@@ -1,5 +1,5 @@
 # Self-Aware Knowledge Probing
-<hr>
+
 This repository contains the code, data and results of the paper:
 
 ***Self-Aware Knowledge Probing: Evaluating Language Models’ Relational Knowledge through Confidence Calibration***  
@@ -7,7 +7,6 @@ This repository contains the code, data and results of the paper:
 by Christopher Kissling, Elena Merdjanovska and Alan Akbik
 
 ## Overview
-<hr>
 
 *Knowledge probing* quantifies how much relational knowledge a language model has acquired
 during pre-training. Existing knowledge probes evaluate model capabilities through metrics
@@ -27,7 +26,6 @@ Experiments are conducted in a closed-set probing setup based on the BEAR framew
 This repository serves as a **research artifact** supporting the experiments reported in the paper.
 
 ## Repository Structure
-<hr>
 
 ```
 ├── data/            # datasets and prompt templates
@@ -44,7 +42,6 @@ This repository serves as a **research artifact** supporting the experiments rep
 ```
 
 ## Usage
-<hr>
 
 A typical workflow of self-aware knowledge probing of a language model consists of:
 
@@ -69,7 +66,6 @@ See section three of the paper for a more detailed explanation. The templates fo
 can be found in `data/BEAR/metadata_relations.json`.
 
 ## Citation
-<hr>
 
 If you use this code or the proposed framework in your work, please cite:
 ```
