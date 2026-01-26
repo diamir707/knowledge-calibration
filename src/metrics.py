@@ -114,7 +114,7 @@ def plot_calibration_curve(
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1)
     ax.set_xlabel("Average Confidence", labelpad=10, fontsize=axes_label_fontsize)
-    ax.set_ylabel("Average Accuracy", labelpad=10, fontsize=axes_label_fontsize)
+    ax.set_ylabel("Accuracy", labelpad=10, fontsize=axes_label_fontsize)
     ax.tick_params(axis="both", which="major", labelsize=axes_tick_fontsize)
     ax.set_title(title, pad=15, fontsize=title_fontsize)
     ax.legend(loc="upper left", frameon=False, fontsize=legend_fontsize)

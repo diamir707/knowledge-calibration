@@ -226,7 +226,7 @@ def evaluate_reductions(models: Union[str, List[str]] = "gpt2") -> pd.DataFrame:
 def get_model_scores(
         model_id: str = "openai-community/gpt2",
         model_type: str = "CLM",
-        path_to_data: str = "../data/BEAR",
+        path_to_data: str = "../../data/BEAR",
         device: str = "cuda",
         templates: Union[int, List[int]] = 0,
         batch_size: int = 32
@@ -235,7 +235,7 @@ def get_model_scores(
     Function used to obtain the model score using LM-PUB-QUIZ for specified templates.
     Stores the raw (unreduced) scores per instance and template.
     """
-    output_path = f"../scores/BEAR/{model_id.split('/')[-1]}"
+    output_path = f"../../scores/BEAR/{model_id.split('/')[-1]}"
     file_path = f"{output_path}/scores.json"
 
     evaluator = Evaluator.from_model(model=model_id, model_type=model_type, device=device)
