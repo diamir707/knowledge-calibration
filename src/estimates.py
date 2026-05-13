@@ -136,6 +136,97 @@ def consistency_confidence(
     return pd.DataFrame(records)
 
 
+def semantic_entropy_confidence(
+    instances_df: pd.DataFrame,
+    strategies: Tuple[str] = ("voting", "min_conf", "max_conf"),
+    votes_range: Tuple[int] = (2, 3, 4, 5)
+) -> pd.DataFrame:
+    """
+    Computes the Semantic-Entropy Confidence per instance
+    as defined in https://arxiv.org/abs/2302.09664:
+
+        SE = - sum(p(x)*log p(x)) (measure of uncertainty)
+        confidence = 1 - SE / log(K) (measure of certainty)
+
+    where:
+        K = number of unique predicted semantic labels in the group
+        maximum is 5, because 5 unique templates per instance.
+    """
+
+    records = []
+
+    grouped = instances_df[
+        ~instances_df["template"].isin([5, 6, 7, 8, 9, 10, 11])
+    ].groupby(["relation", "instance"])
+
+    for _, group in grouped:
+        record = {
+            "relation": group["relation"].iloc[0],
+            "instance": group["instance"].iloc[0],
+        }
+
+        ground_truth = group["answer_idx"].iloc[0]
+
+        for strategy in strategies:
+
+            if strategy == "voting":
+                for votes_to_win in votes_range:
+
+                    pred_idx, _, fail = aggregate(
+                        group, strategy=strategy, votes_to_win=votes_to_win
+                    )
+
+                    if fail:
+                        semantic_conf = 0.0
+                    else:
+                        subset = group[group["predicted_index"] == pred_idx]
+
+                        probs = subset["predicted_index"].value_counts(normalize=True).values
+
+                        entropy = -np.sum(probs * np.log(probs + 1e-12))
+
+                        k = len(np.unique(subset["predicted_index"]))
+
+                        if k <= 1:
+                            # only one semantic label: maximum confidence
+                            semantic_conf = 1.0
+                        else:
+                            entropy_norm = entropy / np.log(k)
+                            entropy_norm = np.clip(entropy_norm, 0.0, 1.0)
+                            semantic_conf = 1.0 - entropy_norm
+
+                        semantic_conf = np.clip(semantic_conf, 0.0, 1.0)
+
+                    record[f"semantic_conf_{strategy}_{votes_to_win}"] = semantic_conf
+
+            else:
+                pred_idx, _, _ = aggregate(group, strategy=strategy)
+
+                semantic_conf = 0.0
+                subset = group[group["predicted_index"] == pred_idx]
+
+                probs = subset["predicted_index"].value_counts(normalize=True).values
+
+                entropy = -np.sum(probs * np.log(probs + 1e-12))
+
+                k = len(np.unique(subset["predicted_index"]))
+
+                if k <= 1:
+                    semantic_conf = 1.0
+                else:
+                    entropy_norm = entropy / np.log(k)
+                    entropy_norm = np.clip(entropy_norm, 0.0, 1.0)
+                    semantic_conf = 1.0 - entropy_norm
+
+                semantic_conf = np.clip(semantic_conf, 0.0, 1.0)
+
+                record[f"semantic_conf_{strategy}"] = semantic_conf
+
+        records.append(record)
+
+    return pd.DataFrame(records)
+
+
 def marker_confidence(instances_df: pd.DataFrame) -> pd.DataFrame:
     """
     Function to obtain a models prediction and associated base-confidences
@@ -231,6 +322,7 @@ def get_confidence_estimates(
     # Confidence estimates which rely on multiple templates
     average_df = average_confidence(results)
     consistency_df = consistency_confidence(results)
+    semantic_df = semantic_entropy_confidence(results)
 
     # Confidence estimate which use the injected templates
     marker_df = marker_confidence(results)
@@ -240,6 +332,7 @@ def get_confidence_estimates(
         results
         .merge(average_df, on=["relation", "instance"])
         .merge(consistency_df, on=["relation", "instance"])
+        .merge(semantic_df, on=["relation", "instance"])
         .merge(marker_df, on=["relation", "instance"])
         .query("template == 0")     # keep results from first template for single template estimates
         .drop(columns=[
